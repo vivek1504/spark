@@ -1,0 +1,82 @@
+import { useEffect, useState } from "react";
+import { FileCode, X, Plus } from "lucide-react";
+import { FileNode } from "@/types";
+import { getWebContainer } from "@/webContainer/webContainerManager";
+import { buildTree, FileTree } from "./FileTree";
+import Editor from "@monaco-editor/react"
+
+
+export const CodeEditor = () => {
+  const [treeData, setTreeData] = useState<FileNode[]>([])
+  const [selectedFile, setSelectedFile] = useState<string | null>(null)
+  const [fileContent, setFileContent] = useState("")
+
+  useEffect(()=>{
+    async function loadTree(){
+      const wc = await getWebContainer();
+      const tree = await buildTree(wc.fs)
+      setTreeData(tree)
+    }
+    loadTree()
+  },[])
+
+  useEffect(()=>{
+    async function loadFile(){
+      if(!selectedFile) return;
+      const wc = await getWebContainer();
+      const content = await wc.fs.readFile(selectedFile, "utf-8")
+      setFileContent(content)
+    }
+    loadFile()
+  }, [selectedFile])
+
+  useEffect(()=>{
+    if(!selectedFile) return;
+
+    const timeout = setTimeout(async ()=>{
+      const wc = await getWebContainer();
+      await wc.fs.writeFile(selectedFile, fileContent)
+    }, 300)
+
+    return ()=> clearTimeout(timeout);
+  }, [fileContent, selectedFile])
+
+  return (
+    <div className="h-full flex flex-col bg-code">
+      {/* Tabs */}
+      <div className="flex h-full">
+      {/* File Tree */}
+      <div className="w-64 border-r border-border overflow-auto">
+        <FileTree
+          data={treeData}
+          onFileSelect={(path) => setSelectedFile(path)}
+        />
+      </div>
+
+      {/* Monaco Editor */}
+      <div className="flex-1">
+        <Editor
+          height="100%"
+          path={selectedFile ?? undefined}
+          value={fileContent}
+          language={getLanguageFromPath(selectedFile)}
+          theme="vs-dark"
+          onChange={(value) => setFileContent(value ?? "")}
+        />
+      </div>
+    </div>
+    </div>
+  );
+};
+
+function getLanguageFromPath(path: string | null) {
+  if (!path) return "plaintext";
+  if (path.endsWith(".js")) return "javascript";
+  if (path.endsWith(".ts")) return "typescript";
+  if (path.endsWith(".jsx")) return "javascript";
+  if (path.endsWith(".tsx")) return "typescript";
+  if (path.endsWith(".json")) return "json";
+  if (path.endsWith(".css")) return "css";
+  if (path.endsWith(".html")) return "html";
+  return "plaintext";
+}
