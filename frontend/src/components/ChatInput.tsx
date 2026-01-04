@@ -3,6 +3,7 @@ import { useAtom } from "jotai";
 import { codeAtom, isLoadingCode, promptAtom } from "@/Atoms";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import { useAuth } from "@clerk/clerk-react";
 
 
 const BACKEND_URL=import.meta.env.VITE_BACKEND_URL
@@ -12,6 +13,7 @@ const ChatInput = () => {
   const navigate = useNavigate()
   const [_, setCode] = useAtom(codeAtom)
   const [__, setLoading] = useAtom(isLoadingCode)
+  const {isSignedIn} = useAuth()
 
   const sendPrompt = async ()=> {
       try {
@@ -55,6 +57,10 @@ const ChatInput = () => {
                   
             <button className="flex justify-between gap-2 items-center border-2 border-white/25 rounded-xl bg-[#19e6d5] text-black font-semibold px-4 py-2 cursor-pointer" 
               onClick={async()=>{
+                if(!isSignedIn){
+                  navigate("/sign-in")
+                  return
+                }
                 await sendPrompt();
                 navigate("/chat")
               }}>

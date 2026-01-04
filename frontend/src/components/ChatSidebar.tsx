@@ -3,6 +3,7 @@ import { Send, Sparkles, Bot, User, Zap } from "lucide-react";
 import axios from "axios";
 import { getWebContainer } from "@/webContainer/webContainerManager";
 import { applyEdit } from "@/webContainer/webContainerRuntime";
+import { UserButton } from "@clerk/clerk-react";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
@@ -75,6 +76,9 @@ export const ChatSidebar = () => {
             <Zap className="w-4 h-4 text-primary" />
           </div>
           <span className="font-semibold text-sm">Spark</span>
+        </div>
+        <div>
+          <UserButton></UserButton>
         </div>
       </div>
 

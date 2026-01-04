@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import {BuilderLayout} from "./pages/BuilderLayout";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
+import { RedirectToSignIn, SignedIn, SignedOut } from "@clerk/clerk-react";
+import SignInPage from "./pages/SignInPage";
 
 const queryClient = new QueryClient();
 
@@ -16,9 +18,16 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/chat" element={<BuilderLayout />} />
+          <Route path="/chat" element={<>
+            <SignedIn>
+              <BuilderLayout/>
+            </SignedIn>
+            <SignedOut>
+              <RedirectToSignIn/>
+            </SignedOut>
+          </>} />
+          <Route path="sign-in" element={<SignInPage/>}/>
           <Route path="/" element={<LandingPage/>}/>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
