@@ -6,7 +6,7 @@ import { getWebContainer } from "./webContainerManager";
 import { store } from "../store";
 import { isWebcontainerLoadedAtom } from "../Atoms";
 import {type Terminal } from "xterm";
-
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const fixState : FixState = {
   isBusy :false,
   attempts: 0,
@@ -89,7 +89,7 @@ export async function applyEdit(path:string, newContents:string){
 }
 
 async function requestFix(code:string, error:string){
-  const res = await axios.post('http://localhost:3000/fixError',{
+  const res = await axios.post(`${BACKEND_URL}fixError`,{
     code,
     buildErrors : error
   }, {timeout : 45000})

@@ -16,7 +16,7 @@ const ChatInput = () => {
   const sendPrompt = async ()=> {
       try {
           setLoading(true)
-          const res = await axios.post(`${BACKEND_URL}/chat`, {
+          const res = await axios.post(`${BACKEND_URL}chat`, {
               userPrompt : prompt
           });
           const generatedCode = res.data.response

@@ -45,7 +45,7 @@ export const ChatSidebar = () => {
     try{
     const code =await webContainer.fs.readFile("/src/App.jsx","utf-8")
 
-    const res = await axios.post(`${BACKEND_URL}/update`,{
+    const res = await axios.post(`${BACKEND_URL}update`,{
       userPrompt : input,
       code
     })
