@@ -7,7 +7,8 @@ import { isLoadingCode } from "@/Atoms";
 import Loader from "@/components/ui/Loader";
 
 export default function LandingPage() {
-  const loading = useAtomValue(isLoadingCode);
+  //const loading = useAtomValue(isLoadingCode);
+  const loading = true
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
@@ -39,12 +40,15 @@ export default function LandingPage() {
     <Footer />
   </div>
 
-  {/* LOADING OVERLAY */}
   {loading && (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/30 backdrop-blur-sm">
       <Loader />
+      <p className="text-sm text-muted-foreground">
+        This usually takes a few seconds
+      </p>
     </div>
   )}
+
 </div>
 
   );

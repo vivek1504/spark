@@ -1,10 +1,25 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+const steps = [
+  "Planning",
+  "creating",
+  "Running",
+];
+
 const Loader = () => {
+  const [step, setStep] = useState(0)
+
+  useEffect(()=>{
+    const id= setInterval(()=>{
+      setStep((s)=>(s+1) % steps.length);
+    },1200);
+    return ()=>clearInterval(id)
+  },[])
+
   return (
     <StyledWrapper>
-      <div className="loading-bar">Creating</div>
+      <div className="loading-bar">{steps[step]}</div>
     </StyledWrapper>
   );
 }
@@ -12,8 +27,8 @@ const Loader = () => {
 const StyledWrapper = styled.div`
   .loading-bar {
     position: relative;
-    width: 110px;
-    height: 110px;
+    width: 120px;
+    height: 120px;
     background: transparent;
     border: px solid #3c3c3c;
     border-radius: 50%;
