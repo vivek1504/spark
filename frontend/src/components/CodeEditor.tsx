@@ -4,6 +4,7 @@ import { FileNode } from "@/types";
 import { getWebContainer } from "@/webContainer/webContainerManager";
 import { buildTree, FileTree } from "./FileTree";
 import Editor from "@monaco-editor/react"
+import { defineTheme } from "@/lib/customTheme";
 
 export const CodeEditor = () => {
   const [treeData, setTreeData] = useState<FileNode[]>([])
@@ -48,6 +49,7 @@ export const CodeEditor = () => {
       <div className="w-64 border-r border-border overflow-auto">
         <FileTree
           data={treeData}
+          selectedFile={selectedFile}
           onFileSelect={(path) => setSelectedFile(path)}
         />
       </div>
@@ -59,7 +61,8 @@ export const CodeEditor = () => {
           path={selectedFile ?? undefined}
           value={fileContent}
           language={getLanguageFromPath(selectedFile)}
-          theme="vs-dark"
+          theme="spark-dark"
+          beforeMount={defineTheme}
           onChange={(value) => setFileContent(value ?? "")}
           options={{
             fontSize: 13,
