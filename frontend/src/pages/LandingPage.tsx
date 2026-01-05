@@ -7,8 +7,7 @@ import { isLoadingCode } from "@/Atoms";
 import Loader from "@/components/ui/Loader";
 
 export default function LandingPage() {
-  //const loading = useAtomValue(isLoadingCode);
-  const loading = true
+  const loading = useAtomValue(isLoadingCode);
 
   return (
     <div className="min-h-screen bg-background flex flex-col relative overflow-hidden">
