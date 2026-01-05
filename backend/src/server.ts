@@ -22,8 +22,8 @@ app.use(cors({
 app.use(express.json())
 app.use(clerkMiddleware())
 
-app.get("",(req , res)=>{
-    res.json({msg: "service deployed"})
+app.get("/health",(req , res)=>{
+    res.json({msg: "service deployed", status:"ok"})
 })
 
 app.post("/chat",requireAuth(), clerkRateLimiter , async (req : Request ,res : Response)=>{
