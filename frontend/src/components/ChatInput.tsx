@@ -13,14 +13,20 @@ const ChatInput = () => {
   const navigate = useNavigate()
   const [_, setCode] = useAtom(codeAtom)
   const [__, setLoading] = useAtom(isLoadingCode)
-  const {isSignedIn} = useAuth()
-
+  const {isSignedIn, getToken} = useAuth()
+  const token = getToken()
+  
   const sendPrompt = async ()=> {
       try {
           setLoading(true)
           const res = await axios.post(`${BACKEND_URL}chat`, {
               userPrompt : prompt
-          });
+          },{
+            headers:{
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
           const generatedCode = res.data.response
           setCode(generatedCode)
           setLoading(false)

@@ -5,7 +5,6 @@ import { getWebContainer } from "@/webContainer/webContainerManager";
 import { buildTree, FileTree } from "./FileTree";
 import Editor from "@monaco-editor/react"
 
-
 export const CodeEditor = () => {
   const [treeData, setTreeData] = useState<FileNode[]>([])
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
@@ -62,6 +61,19 @@ export const CodeEditor = () => {
           language={getLanguageFromPath(selectedFile)}
           theme="vs-dark"
           onChange={(value) => setFileContent(value ?? "")}
+          options={{
+            fontSize: 13,
+              fontFamily: "JetBrains Mono, Fira Code, monospace",
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              padding: { top: 12 },
+              renderLineHighlight: "none",
+              overviewRulerBorder: false,
+              scrollbar: {
+                verticalScrollbarSize: 8,
+                horizontalScrollbarSize: 8,
+              },
+          }}
         />
       </div>
     </div>

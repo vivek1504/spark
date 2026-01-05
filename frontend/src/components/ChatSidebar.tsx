@@ -3,7 +3,7 @@ import { Send, Sparkles, Bot, User, Zap } from "lucide-react";
 import axios from "axios";
 import { getWebContainer } from "@/webContainer/webContainerManager";
 import { applyEdit } from "@/webContainer/webContainerRuntime";
-import { UserButton } from "@clerk/clerk-react";
+import { useAuth, UserButton } from "@clerk/clerk-react";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
@@ -24,7 +24,9 @@ const initialMessages: Message[] = [
 export const ChatSidebar = () => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState("");
+  const {getToken} = useAuth()
   const [webContainer, setWebcontainer] = useState<any>()
+  const token = getToken()
 
   useEffect(()=>{
     getWebContainer().then(setWebcontainer)
@@ -49,6 +51,10 @@ export const ChatSidebar = () => {
     const res = await axios.post(`${BACKEND_URL}update`,{
       userPrompt : input,
       code
+    }, {
+      headers: {
+        Authorization:`Bearer ${token}`
+      }
     })
 
     const updatedCode = res.data.response;

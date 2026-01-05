@@ -6,6 +6,8 @@ import { getWebContainer } from "./webContainerManager";
 import { store } from "../store";
 import { isWebcontainerLoadedAtom } from "../Atoms";
 import {type Terminal } from "xterm";
+import { useAuth } from "@clerk/clerk-react";
+
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const fixState : FixState = {
   isBusy :false,
@@ -89,10 +91,14 @@ export async function applyEdit(path:string, newContents:string){
 }
 
 async function requestFix(code:string, error:string){
+  const {getToken} = useAuth()
+  const token = await getToken()
   const res = await axios.post(`${BACKEND_URL}fixError`,{
     code,
     buildErrors : error
-  }, {timeout : 45000})
+  }, {timeout : 45000, headers:{
+    Authorization: `Bearer ${token}`
+  }})
 
   return res.data.response;
 }

@@ -1,10 +1,11 @@
-import express, { json, response } from "express"
+import express from "express"
 import type {Request, Response} from "express"
 import cors from "cors"
-
+import { clerkMiddleware, requireAuth } from "@clerk/express"
 import dotenv from "dotenv"
 import Groq from "groq-sdk"
 import { enhancePrompt, errorFixPrompt, systemConstraint } from "./prompts.js"
+import { clerkRateLimiter } from "./rateLimit.js"
 
 dotenv.config()
 
@@ -12,26 +13,30 @@ const app = express()
 const PORT= process.env.PORT || 3000
 const groq = new Groq({apiKey : process.env.GROQ_API_KEY})
 
-app.use(cors())
+app.use(cors({
+    origin:true,
+    credentials:true,
+    allowedHeaders:["Content-Type", "Authorization"]
+}))
+
 app.use(express.json())
+app.use(clerkMiddleware())
 
 app.get("",(req , res)=>{
     res.json({msg: "service deployed"})
 })
 
-app.post("/chat", async (req : Request ,res : Response)=>{
+app.post("/chat",requireAuth(), clerkRateLimiter , async (req : Request ,res : Response)=>{
     const {userPrompt} = req.body 
     console.log(userPrompt)
     try {
-
         const enhanced = await groq.chat.completions.create({
             model : "qwen/qwen3-32b",
             messages : [
                 {role : 'user', content: userPrompt},
                 {role : "system", content: enhancePrompt}
             ]
-        })
-       
+        })   
 
         if(!enhanced.choices[0]?.message.content)return
 
@@ -55,7 +60,7 @@ app.post("/chat", async (req : Request ,res : Response)=>{
 
 })
 
-app.post("/update", async (req , res)=>{
+app.post("/update",requireAuth(), clerkRateLimiter, async (req , res)=>{
     const {userPrompt, code} = req.body;
     console.log("request reached")
     try{
@@ -78,7 +83,7 @@ app.post("/update", async (req , res)=>{
     }
 })
 
-app.post("/fixError",async (req :Request, res: Response)=>{
+app.post("/fixError", requireAuth(), clerkRateLimiter ,async (req :Request, res: Response)=>{
     const {code, buildErrors} = req.body
     console.log("request reached")
     await new Promise(r => setTimeout(r,3000))
