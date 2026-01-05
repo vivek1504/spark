@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit"
+import rateLimit, { ipKeyGenerator } from "express-rate-limit"
 
 export const clerkRateLimiter = rateLimit({
   windowMs: 60 * 1000, 
@@ -7,11 +7,11 @@ export const clerkRateLimiter = rateLimit({
   legacyHeaders: false,
 
   keyGenerator: (req: any) => {
-
-    if (req.auth?.userId) {
+    const ipKey = ipKeyGenerator(req)
+    if (req.auth()?.userId) {
       return `user_${req.auth.userId}`
     }
-    return req.ip
+    return ipKey
   },
 
   handler: (_req, res) => {

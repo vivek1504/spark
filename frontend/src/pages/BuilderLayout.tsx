@@ -4,11 +4,16 @@ import { CodeEditor } from "../components/CodeEditor";
 import { Preview } from "../components/Preview";
 import { Code, Eye, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
-import { codeAtom, isWebcontainerLoadedAtom } from "@/Atoms";
+import { codeAtom, isLoadingCode, isWebcontainerLoadedAtom, promptAtom } from "@/Atoms";
 import { applyEdit, startWorkspace } from "@/webContainer/webContainerRuntime";
 import { Terminal, TerminalHandle } from "../components/Terminal";
 import DownloadButton from "@/components/ui/DownloadButton";
+import { useAuth } from "@clerk/clerk-react";
+import axios from "axios";
 type ViewMode = "split" | "code" | "preview";
+import { useSearchParams } from "react-router-dom";
+
+const BACKEND_URL=import.meta.env.VITE_BACKEND_URL
 
 export const BuilderLayout = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("split");
@@ -21,7 +26,48 @@ export const BuilderLayout = () => {
   const code = useAtomValue(codeAtom);
   const [isWebcontainerLoaded] = useAtom(isWebcontainerLoadedAtom);
 
-  /* Boot WebContainer (runs ONCE, correctly) */
+  const {isSignedIn} = useAuth()
+  const [prompt, setPrompt] = useAtom(promptAtom)
+  const [,setCode] = useAtom(codeAtom)
+  const [,setLoading] = useAtom(isLoadingCode)
+  const {getToken} = useAuth()
+
+  const [searchParams] = useSearchParams()
+  const urlPrompt = searchParams.get("prompt")
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+    if (!urlPrompt) return;
+
+    setPrompt(urlPrompt);
+  }, [isSignedIn, urlPrompt]);
+
+  useEffect(() => {
+  if (!isSignedIn) return;
+  if (!prompt.trim()) return;
+
+  console.log("SENDING PROMPT", prompt);
+
+  const sendPrompt = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      const res = await axios.post(
+        `${BACKEND_URL}chat`,
+        { userPrompt: prompt },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCode(res.data.response);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  sendPrompt();
+}, [isSignedIn, prompt]);
+
+
+
   useEffect(() => {
     if (!terminalReady) return;
     if (!terminalRef.current?.term) return;
@@ -31,7 +77,6 @@ export const BuilderLayout = () => {
     );
   }, [terminalReady]);
 
-  /* Apply AI edits */
   useEffect(() => {
     if (!isWebcontainerLoaded){
       console.log("returned due to webcontainer not loaded")
@@ -45,6 +90,7 @@ export const BuilderLayout = () => {
 
   return (
     <div className="h-screen flex overflow-hidden bg-background">
+      
       {/* Chat Sidebar */}
       <div
         className={`transition-all duration-300 ease-in-out ${

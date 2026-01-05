@@ -5,34 +5,22 @@ import axios from "axios";
 import { useNavigate } from "react-router";
 import { useAuth } from "@clerk/clerk-react";
 
-
-const BACKEND_URL=import.meta.env.VITE_BACKEND_URL
-
 const ChatInput = () => {
   const [prompt, setPrompt] = useAtom(promptAtom);
   const navigate = useNavigate()
-  const [_, setCode] = useAtom(codeAtom)
-  const [__, setLoading] = useAtom(isLoadingCode)
-  const {isSignedIn, getToken} = useAuth()
-  const token = getToken()
-  
-  const sendPrompt = async ()=> {
-      try {
-          setLoading(true)
-          const res = await axios.post(`${BACKEND_URL}chat`, {
-              userPrompt : prompt
-          },{
-            headers:{
-              Authorization: `Bearer ${token}`
-            }
-          }
-        );
-          const generatedCode = res.data.response
-          setCode(generatedCode)
-          setLoading(false)
-      }catch(err){
-          console.error(err)
-      }
+  const {isSignedIn} = useAuth()
+
+
+  const handleSubmit = async()=>{
+    if(!prompt.trim()) return
+
+    if(!isSignedIn){
+      navigate(
+        `/sign-in?redirect_url=/chat?prompt=${encodeURIComponent(prompt)}`
+      );
+      return
+    }
+    navigate("/chat")
   }
 
   return (
@@ -45,6 +33,12 @@ const ChatInput = () => {
             placeholder="Let's build a dashboard to"
             className="w-full bg-transparent text-foreground placeholder:text-muted-foreground resize-none outline-none text-base min-h-15"
             rows={2}
+            onKeyDown={(e)=>{
+              if(e.key ==="Enter" && !e.shiftKey){
+                e.preventDefault();
+                handleSubmit()
+              }
+            }}
           />
         </div>
 
@@ -62,18 +56,10 @@ const ChatInput = () => {
 
                   
             <button className="flex justify-between gap-2 items-center border-2 border-white/25 rounded-xl bg-[#19e6d5] text-black font-semibold px-4 py-2 cursor-pointer" 
-              onClick={async()=>{
-                if(!isSignedIn){
-                  navigate("/sign-in")
-                  return
-                }
-                await sendPrompt();
-                navigate("/chat")
-              }}>
+              onClick={handleSubmit}>
               <div>Build now</div>
               <ArrowRight className="w-4 h-4" />
             </button>
-          
         </div>
       </div>
     </div>
