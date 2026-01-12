@@ -2,22 +2,32 @@ import { useEffect, useRef, useState } from "react";
 import { ChatSidebar } from "../components/ChatSidebar";
 import { CodeEditor } from "../components/CodeEditor";
 import { Preview } from "../components/Preview";
-import { Code, Eye, PanelLeftClose, PanelLeft } from "lucide-react";
+import { Code, Eye, FolderTree, MessageSquareCode } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
-import { codeAtom, isLoadingCode, isWebcontainerLoadedAtom, promptAtom } from "@/Atoms";
+import {
+  codeAtom,
+  isLoadingCode,
+  isWebcontainerLoadedAtom,
+  promptAtom,
+} from "../lib/Atoms";
 import { applyEdit, startWorkspace } from "@/webContainer/webContainerRuntime";
 import { Terminal, TerminalHandle } from "../components/Terminal";
 import DownloadButton from "@/components/ui/DownloadButton";
 import { useAuth } from "@clerk/clerk-react";
 import axios from "axios";
-type ViewMode = "split" | "code" | "preview";
 import { useSearchParams } from "react-router-dom";
+import { FileNode } from "@/lib/types";
+import { getWebContainer } from "@/webContainer/webContainerManager";
+import { buildTree, FileTree } from "../components/FileTree";
 
-const BACKEND_URL=import.meta.env.VITE_BACKEND_URL
+type ViewMode = "split" | "code" | "preview";
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 export const BuilderLayout = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("split");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
   const [terminalReady, setTerminalReady] = useState(false);
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -26,47 +36,57 @@ export const BuilderLayout = () => {
   const code = useAtomValue(codeAtom);
   const [isWebcontainerLoaded] = useAtom(isWebcontainerLoadedAtom);
 
-  const {isSignedIn} = useAuth()
-  const [prompt, setPrompt] = useAtom(promptAtom)
-  const [,setCode] = useAtom(codeAtom)
-  const [,setLoading] = useAtom(isLoadingCode)
-  const {getToken} = useAuth()
+  const { isSignedIn } = useAuth();
+  const [prompt = "", setPrompt] = useAtom(promptAtom);
+  const [, setCode] = useAtom(codeAtom);
+  const [, setLoading] = useAtom(isLoadingCode);
+  const { getToken } = useAuth();
 
-  const [searchParams] = useSearchParams()
-  const urlPrompt = searchParams.get("prompt")
+  const [searchParams] = useSearchParams();
+
+  const [treeData, setTreeData] = useState<FileNode[]>([]);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadTree() {
+      const wc = await getWebContainer();
+      const tree = await buildTree(wc.fs);
+      setTreeData(tree);
+    }
+    loadTree();
+  }, []);
 
   useEffect(() => {
     if (!isSignedIn) return;
-    if (!urlPrompt) return;
 
-    setPrompt(urlPrompt);
-  }, [isSignedIn, urlPrompt]);
+    const storedPrompt = sessionStorage.getItem("pendingPrompt");
+    if (!storedPrompt) return;
+
+    setPrompt(storedPrompt ?? "");
+    sessionStorage.removeItem("pendingPrompt");
+  }, [isSignedIn]);
 
   useEffect(() => {
-  if (!isSignedIn) return;
-  if (!prompt.trim()) return;
+    if (!isSignedIn) return;
+    if (!prompt.trim()) return;
 
-  console.log("SENDING PROMPT", prompt);
+    const sendPrompt = async () => {
+      try {
+        setLoading(true);
+        const token = await getToken();
+        const res = await axios.post(
+          `${BACKEND_URL}chat`,
+          { userPrompt: prompt },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setCode(res.data.response);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const sendPrompt = async () => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      const res = await axios.post(
-        `${BACKEND_URL}chat`,
-        { userPrompt: prompt },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setCode(res.data.response);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  sendPrompt();
-}, [isSignedIn, prompt]);
-
-
+    sendPrompt();
+  }, [isSignedIn, prompt]);
 
   useEffect(() => {
     if (!terminalReady) return;
@@ -78,50 +98,63 @@ export const BuilderLayout = () => {
   }, [terminalReady]);
 
   useEffect(() => {
-    if (!isWebcontainerLoaded){
-      console.log("returned due to webcontainer not loaded")
+    if (!isWebcontainerLoaded) {
       return;
-    };
-    if (!code.trim()){ 
-      console.log("due to code trim")
-      return}
+    }
+    if (!code.trim()) {
+      return;
+    }
     applyEdit("/src/App.jsx", code);
   }, [code, isWebcontainerLoaded]);
 
   return (
-    <div className="h-screen flex overflow-hidden bg-background">
-      
-      {/* Chat Sidebar */}
+    <div
+      className="h-screen flex overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(31,61,188,0.08) 0%, transparent 15%), hsl(220 20% 4%)",
+      }}
+    >
       <div
-        className={`transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-[20%] min-w-[280px]" : "w-0"
+        className={`h-full flex-shrink-0 transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? "w-72" : "w-0"
         } overflow-hidden`}
       >
         <ChatSidebar />
       </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-secondary/20">
+      <div className="flex-1 flex flex-col min-w-0 h-full">
+        <div className="h-12 flex-shrink-0 flex items-center justify-between px-4 border-b border-white/5 bg-black/40 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isSidebarOpen
+                  ? "text-[#5b8aff] bg-[#1f3dbc]/20 shadow-[0_0_12px_rgba(91,138,255,0.3)]"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+              title="AI Chat"
             >
-              {isSidebarOpen ? (
-                <PanelLeftClose className="w-4 h-4" />
-              ) : (
-                <PanelLeft className="w-4 h-4" />
-              )}
+              <MessageSquareCode className="w-4 h-4" />
             </button>
 
-            <div className="h-6 w-px bg-border" />
-            <span className="text-sm font-medium">my-website</span>
+            <button
+              onClick={() => setIsFileTreeOpen(!isFileTreeOpen)}
+              className={`p-2 rounded-lg transition-colors ${
+                isFileTreeOpen
+                  ? "text-[#5b8aff] bg-[#1f3dbc]/20"
+                  : "text-gray-400 hover:text-white hover:bg-white/5"
+              }`}
+              title="Toggle files"
+            >
+              <FolderTree className="w-4 h-4" />
+            </button>
+
+            <div className="h-6 w-px bg-white/10 mx-1" />
+            <span className="text-sm font-medium text-white">my-website</span>
           </div>
 
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-secondary/50 rounded-lg p-1">
+          <div className="flex items-center bg-white/5 rounded-lg p-1">
             <ViewButton
               active={viewMode === "code"}
               onClick={() => setViewMode("code")}
@@ -147,49 +180,62 @@ export const BuilderLayout = () => {
             />
           </div>
 
-          <DownloadButton></DownloadButton>
+          <DownloadButton />
         </div>
 
-        {/* Editor / Preview */}
-        <div className="flex-1 flex min-h-0">
-          {/* Code */}
+        <div className="flex-1 flex min-h-0 overflow-hidden">
           <div
-            className={`transition-all duration-300 ${
+            className={`flex flex-col transition-all duration-300 overflow-hidden ${
               viewMode === "preview"
                 ? "w-0"
                 : viewMode === "code"
-                ? "w-full"
-                : "w-1/2"
-            } overflow-hidden border-r border-border`}
+                ? "flex-1"
+                : "w-[60%]"
+            } ${viewMode !== "preview" ? "border-r border-white/5" : ""}`}
           >
-            <CodeEditor />
+            <div className="flex-1 flex min-h-0 overflow-hidden">
+              <div
+                className={`flex-shrink-0 transition-all duration-300 ease-in-out border-r border-white/5 bg-black/20 overflow-hidden ${
+                  isFileTreeOpen ? "w-56" : "w-0"
+                }`}
+              >
+                <div className="h-full overflow-auto scrollbar-thin">
+                  <FileTree
+                    data={treeData}
+                    selectedFile={selectedFile}
+                    onFileSelect={(path) => setSelectedFile(path)}
+                  />
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-hidden">
+                <CodeEditor selectedFile={selectedFile} />
+              </div>
+            </div>
+
+            <Terminal
+              ref={terminalRef}
+              onReady={() => setTerminalReady(true)}
+            />
           </div>
 
-          {/* Preview */}
           <div
-            className={`transition-all duration-300 ${
+            className={`transition-all duration-300 overflow-hidden ${
               viewMode === "code"
                 ? "w-0"
                 : viewMode === "preview"
-                ? "w-full"
-                : "w-1/2"
-            } overflow-hidden`}
+                ? "flex-1"
+                : "w-[40%]"
+            }`}
           >
             <Preview iframeRef={iframeRef} />
           </div>
         </div>
-
-        {/* Terminal */}
-        <Terminal
-          ref={terminalRef}
-          onReady={() => setTerminalReady(true)}
-        />
       </div>
     </div>
   );
 };
 
-/* Helper */
 const ViewButton = ({
   active,
   onClick,
@@ -203,10 +249,10 @@ const ViewButton = ({
 }) => (
   <button
     onClick={onClick}
-    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium ${
+    className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
       active
-        ? "bg-primary text-primary-foreground"
-        : "text-muted-foreground hover:text-foreground"
+        ? "bg-[#1f3dbc] text-white"
+        : "text-gray-400 hover:text-white hover:bg-white/5"
     }`}
   >
     {icon}

@@ -1,85 +1,78 @@
-import { RefreshCw, ExternalLink, Smartphone, Monitor, Tablet } from "lucide-react";
-import { useRef, useState } from "react";
+import { RefreshCw, ExternalLink, Loader2 } from "lucide-react";
+import { useState } from "react";
 
-type ViewMode = "desktop" | "tablet" | "mobile";
-
-export const Preview = ({iframeRef} : {iframeRef :any}) => {
-  const [viewMode, setViewMode] = useState<ViewMode>("desktop");
-  const [isLoading, setIsLoading] = useState(false);
+export const Preview = ({ iframeRef }: { iframeRef: any }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = () => {
-    setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 800);
+    setIsRefreshing(true);
+    if (iframeRef.current) {
+      iframeRef.current.src = iframeRef.current.src;
+    }
+    setTimeout(() => setIsRefreshing(false), 800);
   };
 
-  const getPreviewWidth = () => {
-    switch (viewMode) {
-      case "mobile":
-        return "w-[375px]";
-      case "tablet":
-        return "w-[768px]";
-      default:
-        return "w-full";
-    }
+  const handleIframeLoad = () => {
+    setIsLoading(false);
   };
 
   return (
-    <div className="h-full flex flex-col bg-panel">
-      {/* Header */}
-      <div className="h-10 flex items-center justify-between px-3 border-b border-border bg-secondary/20">
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setViewMode("desktop")}
-            className={`p-1.5 rounded transition-colors ${
-              viewMode === "desktop" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
+    <div className="h-full flex flex-col bg-[hsl(220,20%,4%)]">
+      <div className="h-8 flex-shrink-0 flex items-center justify-between px-3 border-b border-white/5 bg-black/20">
+        <div className="flex items-center gap-2 px-2 py-0.5 bg-white/5 rounded text-xs text-gray-500">
+          <div
+            className={`w-1.5 h-1.5 rounded-full ${
+              isLoading ? "bg-yellow-500 animate-pulse" : "bg-[#22c55e]"
             }`}
-          >
-            <Monitor className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setViewMode("tablet")}
-            className={`p-1.5 rounded transition-colors ${
-              viewMode === "tablet" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Tablet className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setViewMode("mobile")}
-            className={`p-1.5 rounded transition-colors ${
-              viewMode === "mobile" ? "bg-primary/20 text-primary" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Smartphone className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2 px-3 py-1 bg-secondary/50 rounded-full text-xs text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-          <span>localhost:5173</span>
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={handleRefresh}
-            className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </button>
-          <button className="p-1.5 rounded text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors">
-            <ExternalLink className="w-4 h-4" />
-          </button>
+          />
+          <span className="font-mono">localhost:5173</span>
         </div>
       </div>
 
-      {/* Preview Content */}
-      <div className="flex-1 overflow-auto bg-background/50 flex items-start justify-center p-4">
-        <div
-          className={`${getPreviewWidth()} h-full bg-background rounded-lg border border-border shadow-xl transition-all duration-300 overflow-hidden`}
-        >
-          {/* Simulated Website Preview */}
-          <iframe ref={iframeRef} style={{ width: "100%", height: "80vh", border: "1px solid #ddd" }} />
-        </div>
+      <div className="flex-1 overflow-hidden relative">
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-[hsl(220,20%,6%)] z-10">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-xl bg-[#1f3dbc]/20 flex items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-[#5b8aff] animate-spin" />
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-sm font-medium text-gray-300">
+                  Starting preview...
+                </span>
+                <span className="text-xs text-gray-500">
+                  Building your application
+                </span>
+              </div>
+
+              <div className="flex gap-1">
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-[#5b8aff] animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-[#5b8aff] animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <div
+                  className="w-1.5 h-1.5 rounded-full bg-[#5b8aff] animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        <iframe
+          ref={iframeRef}
+          className="w-full h-full bg-white"
+          style={{ border: "none" }}
+          onLoad={handleIframeLoad}
+        />
       </div>
     </div>
   );
