@@ -105,9 +105,9 @@ These headers are explicitly configured during deployment (e.g. via `vercel.json
 
 ## 📸 Screenshots / Demo
 
- <img src="https://res.cloudinary.com/dsvgi3ehk/image/upload/v1767615161/Screenshot_from_2026-01-05_17-30-24_ff0jii.png" alt="Screenshot">
+ <img src="https://res.cloudinary.com/dsvgi3ehk/image/upload/v1768247532/Screenshot_from_2026-01-13_01-17-00_zrbknb.png" alt="Screenshot">
 <br> <br>
- <img src="https://res.cloudinary.com/dsvgi3ehk/image/upload/v1767615162/Screenshot_from_2026-01-05_17-30-05_i4vrdc.png" alt="ide" >
+ <img src="https://res.cloudinary.com/dsvgi3ehk/image/upload/v1768247542/Screenshot_from_2026-01-13_01-20-11_heax0a.png" alt="ide" >
 
 ---
 
