@@ -28,7 +28,7 @@ export default function DownloadButton() {
     <button
       disabled={!webContainer}
       onClick={() => downloadProject(webContainer)}
-      className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 disabled:opacity-50"
+      className="px-4 py-1.5 rounded-lg bg-white/10 border border-white/10 text-white text-xs font-medium hover:bg-white/15 hover:border-white/20 disabled:opacity-50 transition-colors"
     >
       Download Project
     </button>
@@ -52,11 +52,10 @@ async function readAllFiles(
       if (entry.isFile()) {
         const content = await webContainer.fs.readFile(fullPath, "utf-8");
         result.push({
-          path: fullPath.replace(/^\//, ""), // remove leading slash for zip
+          path: fullPath.replace(/^\//, ""),
           content,
         });
       } else if (entry.isDirectory()) {
-        // optional: skip node_modules
         if (entry.name === "node_modules") continue;
 
         await walk(fullPath);
@@ -67,4 +66,3 @@ async function readAllFiles(
   await walk(base);
   return result;
 }
-

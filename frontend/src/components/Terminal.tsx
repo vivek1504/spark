@@ -1,18 +1,6 @@
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
+import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { Terminal as XTerm } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
-import {
-  Terminal as TerminalIcon,
-  X,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
 import "xterm/css/xterm.css";
 import { getTerminal } from "@/lib/terminalSingleton";
 
@@ -30,83 +18,51 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
     const termRef = useRef<XTerm | null>(null);
     const fitAddonRef = useRef<FitAddon | null>(null);
 
-    const [isExpanded, setIsExpanded] = useState(false);
-
     useImperativeHandle(ref, () => ({
       term: termRef.current,
     }));
 
     useEffect(() => {
-  if (!containerRef.current) return;
+      if (!containerRef.current) return;
 
-  const { terminal, isOpened, markOpened } = getTerminal();
+      const { terminal, isOpened, markOpened } = getTerminal();
 
-  // 🚫 prevent opening twice
-  if (!isOpened) {
-    const fitAddon = new FitAddon();
-    terminal.loadAddon(fitAddon);
+      if (!isOpened) {
+        const fitAddon = new FitAddon();
+        terminal.loadAddon(fitAddon);
 
-    terminal.open(containerRef.current);
-    fitAddon.fit();
+        terminal.open(containerRef.current);
+        fitAddon.fit();
 
-    terminal.writeln("$ WebContainer Terminal Ready");
+        fitAddonRef.current = fitAddon;
+        markOpened();
+        onReady?.();
+      } else {
+        fitAddonRef.current?.fit();
+      }
 
-    fitAddonRef.current = fitAddon;
-    markOpened();
-    onReady?.();
-  } else {
-    // ✅ already opened once, just refit
-    fitAddonRef.current?.fit();
-  }
+      termRef.current = terminal;
 
-  termRef.current = terminal;
+      const resize = () => fitAddonRef.current?.fit();
+      window.addEventListener("resize", resize);
 
-  const resize = () => fitAddonRef.current?.fit();
-  window.addEventListener("resize", resize);
+      const resizeObserver = new ResizeObserver(() => {
+        setTimeout(() => fitAddonRef.current?.fit(), 50);
+      });
 
-  return () => {
-    window.removeEventListener("resize", resize);
-  };
-}, [onReady]);
+      if (containerRef.current) {
+        resizeObserver.observe(containerRef.current);
+      }
 
-
-    useEffect(() => {
-      setTimeout(() => fitAddonRef.current?.fit(), 300);
-    }, [isExpanded]);
+      return () => {
+        window.removeEventListener("resize", resize);
+        resizeObserver.disconnect();
+      };
+    }, [onReady]);
 
     return (
-      <div
-        className={`flex flex-col bg-terminal border-t border-border transition-all duration-300 ${
-          isExpanded ? "h-64" : "h-36"
-        }`}
-      >
-        {/* Header */}
-        <div className="h-8 flex items-center justify-between px-3 bg-secondary/20 border-b border-border">
-          <div className="flex items-center gap-2">
-            <TerminalIcon className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-medium">Terminal</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 rounded text-muted-foreground hover:text-foreground"
-            >
-              {isExpanded ? (
-                <Minimize2 className="w-3.5 h-3.5" />
-              ) : (
-                <Maximize2 className="w-3.5 h-3.5" />
-              )}
-            </button>
-            <button className="p-1 rounded text-muted-foreground hover:text-destructive">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Terminal body */}
-        <div className="flex-1 overflow-hidden">
-          <div ref={containerRef} className="h-full w-full" />
-        </div>
+      <div className="flex-shrink-0 border-t border-white/5 bg-black/30">
+        <div ref={containerRef} className="h-40 w-full" />
       </div>
     );
   }
