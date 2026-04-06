@@ -1,4 +1,4 @@
-# 🧠 AI-Powered Website Builder (Bolt/Lovable-style)
+# AI-Powered Website Builder (Bolt/Lovable-style)
 
 An **AI-driven, fully in-browser development environment** that lets users generate, edit, run, debug, and export React applications — **without any backend execution or cloud VMs**.
 
@@ -6,53 +6,53 @@ Inspired by tools like **Bolt** and **Lovable**, this project demonstrates how f
 
 ---
 
-## 🚀 What this project does
+## What this project does
 
-- 📝 Generate full React applications from natural language prompts
-- ✍️ Edit project files directly in a VS Code–like editor
-- 🔥 See live previews via a Vite dev server running *inside the browser*
-- 🛠️ Detect build errors and automatically ask the AI to fix them
-- 📁 Browse and edit a real virtual filesystem
-- 📦 Export the entire project as a downloadable ZIP
-- 🌍 Runs fully client-side, deployed on Vercel
+- Generate full React applications from natural language prompts
+- Edit project files directly in a VS Code–like editor
+- See live previews via a Vite dev server running *inside the browser*
+- Detect build errors and automatically ask the AI to fix them
+- Browse and edit a real virtual filesystem
+- Export the entire project as a downloadable ZIP
+- Runs fully client-side, deployed on Vercel
 
 **No servers. No Docker. No VMs.**  
 Everything runs inside the browser.
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🧩 In-Browser Runtime (WebContainer)
+### In-Browser Runtime (WebContainer)
 - Uses StackBlitz WebContainers to emulate a Node.js environment
 - Supports `npm install`, `npm run dev`, and `npm run build`
 - Real filesystem with read/write access
 
-### 🧠 AI-Driven Code Generation & Repair
+### AI-Driven Code Generation & Repair
 - User prompts are first **enhanced into a structured specification**
 - AI generates full application code (`src/App.jsx`)
 - Build failures are captured and sent back to the AI for auto-fixing
 - Supports iterative self-healing code generation
 
-### 🧑‍💻 IDE-Like Interface
+### IDE-Like Interface
 - File tree with nested directories
 - Monaco Editor (VS Code engine) for editing
 - Tabbed files, autosave, and keyboard shortcuts
 - Terminal output and live preview iframe
 
-### 📦 Project Export
+### Project Export
 - Download the complete project as a ZIP
 - Option to export only build output or specific files
 - Client-side ZIP generation (no backend required)
 
-### 🔐 Production-Grade Browser Isolation
+### Production-Grade Browser Isolation
 - Correct handling of **COOP/COEP headers**
 - Ensures `SharedArrayBuffer` support for WebContainers
 - Fully compatible with modern browser security requirements
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 **Frontend**
 - React + TypeScript
@@ -75,7 +75,7 @@ Everything runs inside the browser.
 
 ---
 
-## 🧠 How it works (High-Level)
+## How it works (High-Level)
 
 1. User enters a natural language prompt  
 2. Prompt is enhanced into a detailed application specification  
@@ -91,7 +91,7 @@ Everything runs inside the browser.
 
 ---
 
-## ⚠️ Important Note on Browser Isolation
+## Important Note on Browser Isolation
 
 This project relies on `SharedArrayBuffer`, which requires **cross-origin isolation**.
 
@@ -103,7 +103,7 @@ These headers are explicitly configured during deployment (e.g. via `vercel.json
 
 ---
 
-## 📸 Screenshots / Demo
+## Screenshots / Demo
 
  <img src="https://res.cloudinary.com/dsvgi3ehk/image/upload/v1768247532/Screenshot_from_2026-01-13_01-17-00_zrbknb.png" alt="Screenshot">
 <br> <br>
@@ -111,7 +111,7 @@ These headers are explicitly configured during deployment (e.g. via `vercel.json
 
 ---
 
-## 🎯 Why this project matters
+## Why this project matters
 
 This is **not just an AI demo**.
 
@@ -126,7 +126,7 @@ This is effectively a **mini cloud IDE — running entirely in the browser**.
 
 ---
 
-## 📌 Possible Future Enhancements
+## Possible Future Enhancements
 
 - Diff view before applying AI fixes
 - Undo / rollback AI changes
@@ -137,7 +137,7 @@ This is effectively a **mini cloud IDE — running entirely in the browser**.
 
 ---
 
-## 🧑‍💻 Author
+## Author
 
 Built by **Vivek Jadhav**
 
