@@ -1,4 +1,4 @@
-# AI-Powered Website Builder (Bolt/Lovable-style)
+# AI-Powered Website Builder
 
 An **AI-driven, fully in-browser development environment** that lets users generate, edit, run, debug, and export React applications — **without any backend execution or cloud VMs**.
 
